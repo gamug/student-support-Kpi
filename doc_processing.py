@@ -4,6 +4,7 @@ from typing import Any
 from src.doc_processing import classify_sentences_batch, sentencizer, sentiment_analyzer
 from src import nlp, sentiment_model
 from src.commons import Logger
+from src.config import paths
 
 logger = Logger("Data Processing Module")
 
@@ -12,7 +13,6 @@ def main(answers: pd.DataFrame) -> Any:
         logger.info('Breaking answers into sentences...')
         corpus = sentencizer(answers, nlp)
         logger.info('Performing sentiment analysis...')
-        1/0
         corpus = sentiment_analyzer(corpus, sentiment_model)
         logger.info('Classifying sentences into PROGRAM and STUDENT...')
         results = pd.DataFrame(classify_sentences_batch(corpus.sentence.tolist(), nlp))
@@ -30,13 +30,13 @@ if __name__=='__main__':
         "--input_path",
         type=str,
         help="Path to the student answers",
-        default=os.path.join('..', 'questions', 'dummy-data.xlsx')
+        default=os.path.join(paths['input_path'], 'dummy-data.xlsx')
     )
     parser.add_argument(
         "--output_path",
         type=str,
         help="Path to put processing results",
-        default=os.path.join('..', 'output', 'stundent_support_corpus.xlsx')
+        default=os.path.join(paths['output_path'], 'stundent_support_corpus.xlsx')
     )
     args = parser.parse_args()
 
@@ -45,7 +45,8 @@ if __name__=='__main__':
         index_col=0,
         sheet_name='Questionario'
     )
-    if corpus := main(answers):
+    corpus = main(answers)
+    if isinstance(corpus, pd.DataFrame):
         logger.info('Saving results...')
         corpus.to_excel(args.output_path, index=False)
         logger.info('Data processing was SUCCESFULLY completed')
