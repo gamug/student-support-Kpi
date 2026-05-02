@@ -1,0 +1,16 @@
+accelerate==1.13.0
+bertopic==0.17.4
+bitsandbytes==0.49.2
+gensim==4.4.0
+matplotlib==3.10.9
+nbconvert==7.17.1
+nltk==3.9.4
+openpyxl==3.1.5
+pandas==2.3.3
+plotly==6.7.0
+scikit-learn==1.7.2
+spacy==3.8.14
+torch @ https://download.pytorch.org/whl/cu126/torch-2.6.0%2Bcu126-cp310-cp310-win_amd64.whl#sha256=eda7768f0a2ad9da3513abf60ff5c13049e7e2ec74ed4cfcd4736a8523ab1f89
+torchaudio @ https://download.pytorch.org/whl/cu126/torchaudio-2.6.0%2Bcu126-cp310-cp310-win_amd64.whl#sha256=7ee4e686eaa5a15bbc718a93471ffdbd56799af95eb3eeca9e295e58d9be1646
+torchvision @ https://download.pytorch.org/whl/cu126/torchvision-0.21.0%2Bcu126-cp310-cp310-win_amd64.whl#sha256=d6b23af252e8f4fc923d57efeab5aad7a33b6e15a72a119d576aa48ec1e0d924
+transformers==5.7.0

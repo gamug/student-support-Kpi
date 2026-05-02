@@ -1,0 +1,1 @@
+from .config.nlp_models import nlp, sentiment_model
