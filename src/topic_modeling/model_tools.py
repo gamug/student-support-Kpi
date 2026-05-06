@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np
 
+from typing import Union
+
 from umap import UMAP
 from hdbscan import HDBSCAN
 
@@ -74,7 +76,7 @@ def build_topic_model(all_stopwords: list[str]) -> BERTopic:
         hdbscan_model=hdbscan_model,
         vectorizer_model=vectorizer_model,
         ctfidf_model=ctfidf_model,
-        representation_model=representation_model,
+        representation_model=representation_model, # pyright: ignore[reportArgumentType]
         top_n_words=modeling_config['TOP_N_WORDS'],
         calculate_probabilities=False,   # set True only if you need soft probs
         verbose=True,
@@ -88,7 +90,7 @@ def train(
     docs: list[str],
     embeddings: np.ndarray,
     logger: Logger
-) -> tuple[list[int], np.ndarray]:
+) -> tuple[list[int], Union[np.ndarray, None]]:
     """
     Fit BERTopic on the pre-computed embeddings.
     Returns the topic assignment per document and the probability array.
@@ -97,7 +99,7 @@ def train(
 
     topic_info = topic_model.get_topic_info()
     n_topics   = len(topic_info[topic_info["Topic"] != -1])
-    n_noise    = sum(1 for t in topics if t == -1)
+    n_noise    = sum(t == -1 for t in topics)
 
     logger.info(f"  Topics found (excl. noise): {n_topics}")
     logger.info(f"  Documents in noise topic : {n_noise} ({n_noise / len(topics) * 100:.1f} %)")
@@ -130,7 +132,7 @@ def evaluate(
 
     # --- 6.1  CV Coherence ---
     topic_words = {
-        tid: [w for w, _ in topic_model.get_topic(tid)]
+        tid: [w for w, _ in topic_model.get_topic(tid)] # type: ignore
         for tid in topic_model.get_topics()
         if tid != -1
     }
@@ -154,11 +156,11 @@ def evaluate(
     non_noise_idx = [i for i, t in enumerate(topics) if t != -1]
     silhouette    = None
 
-    if len(set(topics[i] for i in non_noise_idx)) >= 2:
+    if len({topics[i] for i in non_noise_idx}) >= 2:
         umap_2d    = UMAP(n_components=2, random_state=modeling_config['SEED'], metric="cosine")
         emb_2d     = umap_2d.fit_transform(embeddings[non_noise_idx])
         labels_2d  = [topics[i] for i in non_noise_idx]
-        silhouette = silhouette_score(emb_2d, labels_2d, metric="euclidean")
+        silhouette = silhouette_score(emb_2d, labels_2d, metric="euclidean") # pyright: ignore[reportArgumentType]
         logger.info(f"  Silhouette   : {silhouette:.4f}")
     else:
         logger.info("  Silhouette   : not enough topics")
@@ -198,12 +200,10 @@ def predict_new_documents(
     texts_clean    = [clean_text(t) for t in new_texts]
     new_embeddings = embedding_model.encode(texts_clean, normalize_embeddings=True)
 
-    new_topics, _ = loaded_model.transform(texts_clean, embeddings=new_embeddings)
+    new_topics, _ = loaded_model.transform(texts_clean, embeddings=new_embeddings.numpy())
 
-    df_pred = pd.DataFrame({
+    return pd.DataFrame({
         "document"    : new_texts,
         "topic_id"    : new_topics,
         "topic_label" : [topic_labels.get(t, "Noise") for t in new_topics],
     })
-
-    return df_pred

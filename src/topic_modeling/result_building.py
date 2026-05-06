@@ -1,6 +1,8 @@
 import datetime, json, os
 import pandas as pd, numpy as np
 
+from typing import Any
+
 from bertopic import BERTopic
 from bertopic.representation import MaximalMarginalRelevance
 
@@ -16,7 +18,7 @@ def postprocess(
     all_stopwords: list[str],
     n_topics_found: int,
     logger: Logger
-) -> tuple[list[int], dict[int, str]]:
+) -> tuple[Any|list[int], dict[int, str]]:
     """
     Three post-processing steps applied after training:
 
@@ -41,7 +43,7 @@ def postprocess(
     for tid in topic_model.get_topics():
         if tid == -1:
             continue
-        top3 = [w for w, _ in topic_model.get_topic(tid)[:3]]
+        top3 = [w for w, _ in topic_model.get_topic(tid)[:3]] # type: ignore
         topic_labels[tid] = f"T{tid}: {' | '.join(top3)}"
 
     topic_model.set_topic_labels(topic_labels)
@@ -172,10 +174,10 @@ def export(
         if tid == -1:
             continue
         keywords_dict[str(tid)] = {
-            "label"   : topic_labels.get(tid, f"Topic {tid}"),
+            "label"   : topic_labels.get(tid, f"Topic {tid}"), # type: ignore
             "keywords": [
                 {"word": w, "score": round(s, 4)}
-                for w, s in topic_model.get_topic(tid)
+                for w, s in topic_model.get_topic(tid)  # type: ignore
             ],
         }
     path = os.path.join(paths['topic_modeling'], "topic_keywords.json") #topic_modeling / "topic_keywords.json"

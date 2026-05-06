@@ -1,4 +1,4 @@
-import datetime, warnings
+import argparse, warnings
 import numpy as np
 import plotly.io as pio
 warnings.filterwarnings("ignore")
@@ -7,12 +7,13 @@ from src.topic_modeling.document_preparation import load_data, build_stopwords, 
 from src.topic_modeling.model_tools import build_topic_model, train, evaluate
 from src.topic_modeling.result_building import postprocess, build_results_dataframe, visualize, export
 from src.config import modeling_config, paths
+from src.config import embedding_model
 from src.commons import Logger
 
 logger = Logger("Topic Modeling Module")
 
 
-def main():
+def main(args: argparse.Namespace) -> None:
     pio.renderers.default = "browser"
     np.random.seed(modeling_config['SEED'])
 
@@ -23,7 +24,7 @@ def main():
     # ------------------------------------------------------------------
     logger.info("=" * 60)
     logger.info("[STEP 1] Loading data...")
-    docs_raw = load_data()
+    docs_raw = load_data(args.analysis)
     logger.info(f"  Raw documents loaded: {len(docs_raw)}")
 
     # ------------------------------------------------------------------
@@ -35,7 +36,7 @@ def main():
     # ------------------------------------------------------------------
     logger.info("=" * 60)
     logger.info("[STEP 3] Computing embeddings...")
-    embedding_model, embeddings = compute_embeddings(docs, logger)
+    embeddings = compute_embeddings(docs, embedding_model,logger)
 
     # ------------------------------------------------------------------
     logger.info("=" * 60)
@@ -80,7 +81,7 @@ def main():
     # ------------------------------------------------------------------
     logger.info("=" * 60)
     logger.info("PIPELINE COMPLETE")
-    n_noise = sum(1 for t in topics_final if t == -1)
+    n_noise = sum(t == -1 for t in topics_final)
     logger.info(f"  Final topics         : {n_topics_final}")
     logger.info(f"  Noise documents      : {n_noise} ({n_noise / len(topics_final) * 100:.1f} %)")
     logger.info(f"  Coherence CV         : {eval_metrics['coherence_cv']:.4f}" if eval_metrics["coherence_cv"] else "  Coherence CV         : N/A")
@@ -90,4 +91,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Document processing pipeline")
+    parser.add_argument(
+        "--automation",
+        type=str,
+        help="Path to the student answers",
+        default='default_path'
+    )
+    parser.add_argument(
+        "--analysis",
+        type=str,
+        help="Path to put processing results",
+        default='Programa Negativo'
+    )
+    args = parser.parse_args()
+    main(args)

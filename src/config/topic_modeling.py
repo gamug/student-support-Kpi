@@ -1,5 +1,6 @@
 modeling_config = {
     'SEED': 42,
+    'SENTIMENT_MODEL_NAME': "pysentimiento/robertuito-sentiment-analysis",
     'EMBEDDING_MODEL_NAME': "paraphrase-multilingual-MiniLM-L12-v2",
     'MIN_WORDS': 4,       # minimum words per document after cleaning
     'MIN_CLUSTER_SIZE': 15,      # HDBSCAN: minimum docs to form a topic
